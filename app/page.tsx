@@ -217,7 +217,7 @@ export default function OfferTakeHomeCalculator() {
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">OfferWise</h1>
           </div>
           <p className="text-gray-600 text-lg">
-            Compare total compensation and take-home pay across multiple job offers and cities within USA.    
+            Compare total compensation and take-home pay across multiple job offers and cities within USA.
           </p>
         </div>
 
@@ -274,6 +274,15 @@ export default function OfferTakeHomeCalculator() {
             />
           </div>
         )}
+
+        {/* Disclaimer */}
+        <div className="mt-12 text-center text-gray-500 text-xs">
+          <p>
+            Disclaimer: This calculator provides estimates based on current tax laws and cost of living data. It is for
+            informational purposes only and should not be considered financial or tax advice. Consult with a qualified
+            professional for personalized guidance.
+          </p>
+        </div>
       </div>
     </div>
   )
