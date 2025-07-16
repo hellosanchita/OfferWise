@@ -11,6 +11,7 @@ import { ResultsComparison } from "../components/results-comparison"
 import type { JobOffer, CalculationResult } from "../types/offer"
 import { getCityData } from "../data/cost-of-living"
 import { calculateBenefitsValue } from "../data/benefits-valuation"
+import WelcomeOverlay from "../components/welcome-overlay" // Import the new component
 
 const US_STATES = [
   "Alabama",
@@ -106,6 +107,7 @@ export default function OfferTakeHomeCalculator() {
   ])
   const [results, setResults] = useState<CalculationResult[]>([])
   const [isCalculating, setIsCalculating] = useState(false)
+  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true) // New state for overlay
 
   const addOffer = () => {
     if (offers.length < 3) {
@@ -209,81 +211,88 @@ export default function OfferTakeHomeCalculator() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Calculator className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">OfferWise</h1>
+      {showWelcomeOverlay && <WelcomeOverlay onClose={() => setShowWelcomeOverlay(false)} />}
+
+      {!showWelcomeOverlay && ( // Only render main content if overlay is hidden
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Calculator className="h-8 w-8 text-blue-600" />
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">OfferWise</h1>
+            </div>
+            <p className="text-gray-600 text-lg">
+              Compare total compensation and take-home pay across one or more job offers and major cities within USA.
+            </p>
           </div>
-          <p className="text-gray-600 text-lg">
-            Compare total compensation and take-home pay across multiple job offers and cities within USA.
-          </p>
-        </div>
 
-        {/* Offer Input Cards */}
-        <div className="space-y-6 mb-8">
-          {offers.map((offer, index) => (
-            <OfferInput
-              key={offer.id}
-              offer={offer}
-              onUpdate={updateOffer}
-              onRemove={() => removeOffer(offer.id)}
-              showRemove={offers.length > 1}
-            />
-          ))}
-        </div>
+          {/* Offer Input Cards */}
+          <div className="space-y-6 mb-8">
+            {offers.map((offer, index) => (
+              <OfferInput
+                key={offer.id}
+                offer={offer}
+                onUpdate={updateOffer}
+                onRemove={() => removeOffer(offer.id)}
+                showRemove={offers.length > 1}
+              />
+            ))}
+          </div>
 
-        {/* Add Offer Button */}
-        {offers.length < 3 && (
+          {/* Add Offer Button */}
+          {offers.length < 3 && (
+            <div className="flex justify-center mb-8">
+              <Button onClick={addOffer} variant="outline" size="lg">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Another Offer ({offers.length}/3)
+              </Button>
+            </div>
+          )}
+
+          {/* Calculate Button */}
           <div className="flex justify-center mb-8">
-            <Button onClick={addOffer} variant="outline" size="lg">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Another Offer ({offers.length}/3)
+            <Button onClick={handleCalculateAll} disabled={!isFormValid || isCalculating} size="lg" className="px-8">
+              {isCalculating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Calculating...
+                </>
+              ) : (
+                <>
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Compare Offers
+                </>
+              )}
             </Button>
           </div>
-        )}
 
-        {/* Calculate Button */}
-        <div className="flex justify-center mb-8">
-          <Button onClick={handleCalculateAll} disabled={!isFormValid || isCalculating} size="lg" className="px-8">
-            {isCalculating ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                Calculating...
-              </>
-            ) : (
-              <>
-                <Calculator className="h-4 w-4 mr-2" />
-                Compare Offers
-              </>
-            )}
-          </Button>
-        </div>
+          {/* Results */}
+          {results.length > 0 && (
+            <div
+              className={`transition-all duration-500 ease-in-out transform ${
+                results.length > 0 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              }`}
+            >
+              <ResultsComparison
+                offers={offers.filter(
+                  (offer) => offer.baseSalary > 0 && offer.filingStatus && offer.state && offer.city,
+                )}
+                results={results}
+              />
+            </div>
+          )}
 
-        {/* Results */}
-        {results.length > 0 && (
-          <div
-            className={`transition-all duration-500 ease-in-out transform ${
-              results.length > 0 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-            }`}
-          >
-            <ResultsComparison
-              offers={offers.filter((offer) => offer.baseSalary > 0 && offer.filingStatus && offer.state && offer.city)}
-              results={results}
-            />
+          {/* Disclaimer */}
+          <div className="mt-12 p-4 text-center text-gray-500 text-sm bg-gray-100 rounded-lg">
+            <p>
+              Disclaimer: This calculator provides estimates for informational purposes only. Tax laws, benefit
+              valuations, and cost of living indices are complex and subject to change. Consult with a qualified
+              financial advisor or tax professional for personalized advice.
+              For any inquiries or feedback, please contact us at offerwise.fyi@gmail.com.
+            </p>
           </div>
-        )}
-
-        {/* Disclaimer */}
-        <div className="mt-12 text-center text-gray-500 text-xs">
-          <p>
-            Disclaimer: This calculator provides estimates based on current tax laws and cost of living data. It is for
-            informational purposes only and should not be considered financial or tax advice. Consult with a qualified
-            professional for personalized guidance.
-          </p>
         </div>
-      </div>
+      )}
     </div>
   )
 }

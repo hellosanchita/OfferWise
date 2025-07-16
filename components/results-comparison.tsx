@@ -1,8 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign, TrendingUp } from "lucide-react"
 import type { JobOffer, CalculationResult } from "../types/offer"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface ResultsComparisonProps {
   offers: JobOffer[]
@@ -10,6 +12,8 @@ interface ResultsComparisonProps {
 }
 
 export function ResultsComparison({ offers, results }: ResultsComparisonProps) {
+  const [showAdjustedValues, setShowAdjustedValues] = useState(false)
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -49,17 +53,32 @@ export function ResultsComparison({ offers, results }: ResultsComparisonProps) {
 
   return (
     <div className="space-y-6">
+      {/* Checkbox for COL Adjusted Values */}
+      <div className="flex items-center space-x-2 mb-4">
+        <Checkbox
+          id="showAdjusted"
+          checked={showAdjustedValues}
+          onCheckedChange={(checked) => setShowAdjustedValues(!!checked)}
+        />
+        <label
+          htmlFor="showAdjusted"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Show Cost of Living Adjusted Values
+        </label>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {results.map((result, index) => (
           <Card
             key={offers[index].id}
-            className={`shadow-lg ${index === bestAdjustedTakeHome ? "ring-2 ring-green-500" : ""}`}
+            className={`shadow-lg ${showAdjustedValues && index === bestAdjustedTakeHome ? "ring-2 ring-green-500" : ""}`}
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between">
                 <span className="text-lg">{offers[index].name}</span>
-                {index === bestAdjustedTakeHome && (
+                {showAdjustedValues && index === bestAdjustedTakeHome && (
                   <div className="flex items-center text-green-600 text-sm">
                     <TrendingUp className="h-4 w-4 mr-1" />
                     Best Adjusted
@@ -68,26 +87,34 @@ export function ResultsComparison({ offers, results }: ResultsComparisonProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {/* 1. Annual Take-Home (green color text) */}
+              {/* Annual Take-Home (green color text) */}
               <div className="bg-green-50 p-3 rounded-lg border border-green-200">
                 <p className="text-sm text-green-600 mb-1">Annual Take-Home</p>
                 <p className="text-2xl font-bold text-green-700">{formatCurrency(result.netTakeHome)}</p>
               </div>
-              {/* 2. Adjusted Annual Take-Home (green color text) */}
-              <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-                <p className="text-sm text-green-600 mb-1">Adjusted Annual Take-Home</p>
-                <p className="text-2xl font-bold text-green-700">{formatCurrency(result.adjustedAnnualTakeHome)}</p>
-              </div>
-              {/* 3. Monthly Take-Home (blue color text) */}
+              {/* Monthly Take-Home (blue color text) */}
               <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                 <p className="text-sm text-blue-600 mb-1">Monthly Take-Home</p>
                 <p className="text-xl font-semibold text-blue-700">{formatCurrency(result.monthlyTakeHome)}</p>
               </div>
-              {/* 4. Adjusted Monthly Take-Home (blue color text) */}
-              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-600 mb-1">Adjusted Monthly Take-Home</p>
-                <p className="text-xl font-semibold text-blue-700">{formatCurrency(result.adjustedMonthlyTakeHome)}</p>
-              </div>
+
+              {showAdjustedValues && (
+                <>
+                  {/* Adjusted Annual Take-Home (green color text) */}
+                  <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                    <p className="text-sm text-green-600 mb-1">Adjusted Annual Take-Home</p>
+                    <p className="text-2xl font-bold text-green-700">{formatCurrency(result.adjustedAnnualTakeHome)}</p>
+                  </div>
+                  {/* Adjusted Monthly Take-Home (blue color text) */}
+                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-600 mb-1">Adjusted Monthly Take-Home</p>
+                    <p className="text-xl font-semibold text-blue-700">
+                      {formatCurrency(result.adjustedMonthlyTakeHome)}
+                    </p>
+                  </div>
+                </>
+              )}
+
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span>Total Compensation:</span>
@@ -103,10 +130,12 @@ export function ResultsComparison({ offers, results }: ResultsComparisonProps) {
                     {offers[index].city}, {offers[index].state}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>COL Index:</span>
-                  <span className="font-medium">{result.costOfLivingIndex.toFixed(1)}</span>
-                </div>
+                {showAdjustedValues && (
+                  <div className="flex justify-between">
+                    <span>COL Index:</span>
+                    <span className="font-medium">{result.costOfLivingIndex.toFixed(1)}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -249,31 +278,37 @@ export function ResultsComparison({ offers, results }: ResultsComparisonProps) {
                     </td>
                   ))}
                 </tr>
-                <tr className="border-b">
-                  <td className="py-2">Cost of Living Index</td>
-                  {results.map((result, index) => (
-                    <td key={offers[index].id} className="text-right py-2">
-                      {result.costOfLivingIndex.toFixed(1)}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b bg-purple-50 font-semibold">
-                  <td className="py-2">Adjusted Annual Take-Home</td>
-                  {results.map((result, index) => (
-                    <td key={offers[index].id} className="text-right py-2 text-purple-700">
-                      {formatCurrency(result.adjustedAnnualTakeHome)}
-                      {index === bestAdjustedTakeHome && <TrendingUp className="inline h-3 w-3 ml-1 text-green-600" />}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b bg-purple-50 font-semibold">
-                  <td className="py-2">Adjusted Monthly Take-Home</td>
-                  {results.map((result, index) => (
-                    <td key={offers[index].id} className="text-right py-2 text-purple-700">
-                      {formatCurrency(result.adjustedMonthlyTakeHome)}
-                    </td>
-                  ))}
-                </tr>
+                {showAdjustedValues && (
+                  <>
+                    <tr className="border-b">
+                      <td className="py-2">Cost of Living Index</td>
+                      {results.map((result, index) => (
+                        <td key={offers[index].id} className="text-right py-2">
+                          {result.costOfLivingIndex.toFixed(1)}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr className="border-b bg-purple-50 font-semibold">
+                      <td className="py-2">Adjusted Annual Take-Home</td>
+                      {results.map((result, index) => (
+                        <td key={offers[index].id} className="text-right py-2 text-purple-700">
+                          {formatCurrency(result.adjustedAnnualTakeHome)}
+                          {index === bestAdjustedTakeHome && (
+                            <TrendingUp className="inline h-3 w-3 ml-1 text-green-600" />
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr className="border-b bg-purple-50 font-semibold">
+                      <td className="py-2">Adjusted Monthly Take-Home</td>
+                      {results.map((result, index) => (
+                        <td key={offers[index].id} className="text-right py-2 text-purple-700">
+                          {formatCurrency(result.adjustedMonthlyTakeHome)}
+                        </td>
+                      ))}
+                    </tr>
+                  </>
+                )}
                 <tr>
                   <td className="py-2">Effective Tax Rate</td>
                   {results.map((result, index) => (
