@@ -138,7 +138,9 @@ export function OfferInput({ offer, onUpdate, onRemove, showRemove = false }: Of
         {/* Compensation Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor={`base-salary-${offer.id}`}>Base Salary</Label>
+            <Label htmlFor={`base-salary-${offer.id}`}>
+              Base Salary <span className="text-red-500">*</span>
+            </Label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
@@ -148,6 +150,7 @@ export function OfferInput({ offer, onUpdate, onRemove, showRemove = false }: Of
                 value={offer.baseSalary || ""}
                 onChange={(e) => updateField("baseSalary", Number(e.target.value) || 0)}
                 className="pl-10"
+                required // Mark as required
               />
             </div>
           </div>
@@ -243,7 +246,9 @@ export function OfferInput({ offer, onUpdate, onRemove, showRemove = false }: Of
         {/* Location and Filing Status */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor={`state-${offer.id}`}>State</Label>
+            <Label htmlFor={`state-${offer.id}`}>
+              State <span className="text-red-500">*</span>
+            </Label>
             <Select
               value={offer.state}
               onValueChange={(value) => {
@@ -265,7 +270,9 @@ export function OfferInput({ offer, onUpdate, onRemove, showRemove = false }: Of
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor={`city-${offer.id}`}>City</Label>
+            <Label htmlFor={`city-${offer.id}`}>
+              City <span className="text-red-500">*</span>
+            </Label>
             <Select value={offer.city} onValueChange={(value) => updateField("city", value)} disabled={!offer.state}>
               <SelectTrigger>
                 <SelectValue placeholder="Select your city" />
